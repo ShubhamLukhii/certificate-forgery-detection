@@ -17,11 +17,11 @@ jobs:
     steps:
       # Step 1: Download the repository code.
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Step 2: Install Python.
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
