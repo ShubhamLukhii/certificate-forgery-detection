@@ -14,3 +14,16 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Dataset files
+data/raw/
+data/processed/
+data/cache/
+
+# Model files and training outputs
+models/
+checkpoints/
+outputs/
+
+# Hugging Face local cache, if it is ever placed inside the project
+.huggingface/
