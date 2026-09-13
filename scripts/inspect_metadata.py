@@ -1,26 +1,28 @@
-from huggingface_hub import hf_hub_download
+from pathlib import Path
+
 import pandas as pd
 
 
-DATASET_REPO = "vankey/RealText-V2"
+# Root directory of the downloaded dataset
+DATASET_DIR = Path("data/cache/RealText-V2")
 
 
 def main():
-    # Download only the metadata file.
-    # This should be much smaller than downloading the complete dataset.
-    metadata_path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        filename="metadata.parquet",
-        repo_type="dataset",
-    )
+    """
+    Inspect metadata from the locally downloaded dataset.
+    """
 
-    print("Metadata file downloaded to:")
-    print(metadata_path)
+    metadata_path = DATASET_DIR / "metadata.parquet"
 
-    # Read the metadata file.
+    if not metadata_path.exists():
+        raise FileNotFoundError(
+            f"Metadata file not found: {metadata_path}"
+        )
+
+    # Read the local metadata file.
     metadata = pd.read_parquet(metadata_path)
 
-    print("\nMetadata shape:")
+    print("Metadata shape:")
     print(metadata.shape)
 
     print("\nMetadata columns:")
@@ -32,40 +34,29 @@ def main():
     print("\nData types:")
     print(metadata.dtypes)
 
-    # Display the distribution of the authenticity field.
-    if "type" in metadata.columns:
-        print("\nValues in 'type':")
-        print(metadata["type"].value_counts(dropna=False))
+    print("\nAuthenticity distribution:")
+    print(metadata["type"].value_counts(dropna=False))
 
-    # Display whether masks are available.
-    if "has_mask" in metadata.columns:
-        print("\nValues in 'has_mask':")
-        print(metadata["has_mask"].value_counts(dropna=False))
+    print("\nMask availability:")
+    print(metadata["has_mask"].value_counts(dropna=False))
 
-    # Display language distribution.
-    if "language" in metadata.columns:
-        print("\nLanguage distribution:")
-        print(metadata["language"].value_counts(dropna=False))
+    print("\nLanguage distribution:")
+    print(metadata["language"].value_counts(dropna=False))
 
-    # Display a few forged samples.
-    if "type" in metadata.columns:
-        forged_samples = metadata[metadata["type"] == "black"]
+    print("\nExample image paths:")
+    print(
+        metadata["image_file"]
+        .head(10)
+        .to_string(index=False)
+    )
 
-        print("\nNumber of forged samples:")
-        print(len(forged_samples))
-
-        print("\nFirst forged samples:")
-        print(forged_samples.head())
-
-    # Display a few pristine samples.
-    if "type" in metadata.columns:
-        pristine_samples = metadata[metadata["type"] == "white"]
-
-        print("\nNumber of pristine samples:")
-        print(len(pristine_samples))
-
-        print("\nFirst pristine samples:")
-        print(pristine_samples.head())
+    print("\nExample mask paths:")
+    print(
+        metadata["mask_file"]
+        .dropna()
+        .head(10)
+        .to_string(index=False)
+    )
 
 
 if __name__ == "__main__":
