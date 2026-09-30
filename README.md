@@ -1,310 +1,373 @@
-# CNN-Based Academic Certificate Forgery Detection
+# CNN-Based Academic Certificate Forgery Detection Using Residual Learning and Pixel-Level Tamper Localization
 
-A deep learning-based system for detecting forged academic certificates and identifying potentially tampered regions using convolutional neural networks, residual learning, and pixel-level tamper localization.
+An AI-based system for detecting potential forgery in scanned academic certificates and identifying potentially tampered regions at pixel level.
+
+> **Current MVP:** The publicly deployed temporary MVP uses the pretrained **SEED** tampering detector. The long-term project roadmap remains focused on developing and evaluating a custom Residual CNN-based certificate forgery detection system.
+
+---
+
+## Live Demo
+
+**Live application:**  
+http://13.206.240.176:8001
+
+The current MVP is deployed on **AWS EC2** and provides certificate upload, forgery classification, confidence/probability information, and pixel-level tamper localization.
 
 ---
 
 ## Project Overview
 
-Academic certificate forgery is a significant concern for educational institutions, employers, and verification authorities. Manually verifying certificates can be time-consuming and may not reliably detect sophisticated image-level alterations.
+Academic certificates are increasingly exchanged in digital form, making image/document manipulation a practical concern. This project aims to develop a deep-learning-based system that can:
 
-This project aims to develop an intelligent certificate analysis system that can:
+1. Analyze scanned academic certificates.
+2. Determine whether a certificate is likely to be pristine or forged.
+3. Estimate the confidence of the classification.
+4. Identify potentially tampered regions at pixel level.
+5. Present the result through a web-based interface.
+6. Provide a deployable inference pipeline that can later be replaced or extended with models trained specifically for this project.
 
-- Classify an uploaded academic certificate as genuine or forged.
-- Identify regions that may contain tampering.
-- Produce a pixel-level tampering mask.
-- Provide prediction results through an API.
-- Offer a web-based interface for certificate analysis.
-- Apply automated testing to backend, frontend, data-processing, and machine-learning components.
-- Follow software engineering practices such as version control, continuous integration, and reproducible experimentation.
-
-The project combines deep learning and cybersecurity concepts to support the analysis and verification of digital certificate images.
-
-> **Note:** This system is intended as an assistive analysis tool and should not replace official certificate verification procedures or expert review.
+The project is being developed as a research-oriented system with separate stages for dataset preparation, model development, localization, API integration, frontend development, testing, security/privacy considerations, and deployment.
 
 ---
 
-## Objectives
+## Current Objectives
 
-The primary objectives of this project are:
+### Completed / Implemented
 
-1. Develop a CNN-based certificate forgery classification model.
-2. Incorporate residual learning to improve feature extraction and training stability.
-3. Detect potentially manipulated or forged certificate images.
-4. Localize suspicious regions using pixel-level tampering masks.
-5. Evaluate the model using suitable classification and localization metrics.
-6. Investigate multiple-model or ensemble-learning approaches to reduce dependence on a single model.
-7. Expose the trained model through a FastAPI backend.
-8. Develop a frontend interface for uploading certificates and viewing prediction results.
-9. Implement automated unit, integration, and end-to-end testing for backend and frontend components.
-10. Implement continuous integration using GitHub Actions.
-11. Maintain a reproducible dataset preparation, training, and evaluation pipeline.
-12. Document the system's performance, limitations, security considerations, and future improvements.
+- Dataset acquisition and validation
+- Original dataset metadata inspection
+- Training metadata preparation
+- Pretrained SEED model integration
+- CPU/GPU/MPS-aware model device selection
+- Certificate image preprocessing
+- Image-level forgery classification
+- Pixel-level tamper mask generation
+- Tamper mask resizing to original image dimensions
+- Tampered-pixel counting
+- Tamper-ratio calculation
+- Base64 mask transfer through the API
+- FastAPI inference API
+- React + Vite frontend
+- Certificate upload and preview
+- Prediction result display
+- Tamper localization visualization
+- Production React build
+- FastAPI-served React frontend
+- AWS EC2 deployment
+- ARM64 CPU deployment
+- Hugging Face authentication for gated DINOv3 access
+- Persistent deployment using systemd
+- Public MVP availability
 
----
+### Planned Long-Term Work
 
-## Proposed System Architecture
-
-The planned system will contain the following components:
-
-```text
-                    Certificate Image
-                           |
-                           v
-                  Frontend Upload Interface
-                           |
-                           v
-                    FastAPI Backend
-                           |
-                           v
-                   Input Validation
-                           |
-                           v
-                  Image Preprocessing
-                           |
-                           v
-                  Deep Learning Models
-                    /             \
-                   /               \
-                  v                 v
-       Forgery Classification   Tamper Localization
-                  |                 |
-                  v                 v
-          Genuine / Forged     Predicted Mask
-                  \                 /
-                   \               /
-                    v             v
-                  Result Processing
-                           |
-                           v
-                  Frontend Results View
-```
-
-The final system may use multiple models or an ensemble strategy to reduce dependence on a single model and improve reliability.
+- Dataset analysis and deeper distribution studies
+- Preprocessing and augmentation experiments
+- Train/validation/test split strategy
+- Baseline CNN
+- Custom Residual CNN architecture
+- Model training and evaluation
+- Pixel-level localization experiments
+- Model comparison and ensemble approaches
+- Combined custom-model inference
+- Comprehensive evaluation/error analysis
+- Security and privacy implementation
+- Extended testing
+- CI/CD improvements
+- Final deployment architecture
+- Final validation and documentation
 
 ---
 
-## Dataset
+#  Dataset
 
-This project uses the **RealText-V2** dataset available through Hugging Face.
+## RealText-V2
 
-### Dataset Information
+The project currently uses **RealText-V2** from Hugging Face:
 
-- **Dataset:** `vankey/RealText-V2`
-- **Platform:** Hugging Face
-- **Dataset Type:** Multilingual document forgery analysis
-- **License:** CC-BY-NC-4.0
+`vankey/RealText-V2`
 
-The dataset license and usage restrictions should be reviewed before any public or commercial deployment.
+The dataset is designed for multilingual text/document forgery analysis and contains:
 
-### Dataset Characteristics
+- 20K+ images
+- 6 languages
+- 6 domains
+- Multiple forgery types
+- Multi-source samples
+- Pixel-level localization masks
 
-The dataset provides:
+The dataset includes both pristine and forged samples and provides masks for samples where localization information is available.
 
-- Document images.
-- Authenticity labels.
-- Language information.
-- Mask filenames.
-- Mask availability information.
-- Forgery-related reports.
-- Pixel-level masks for forged samples.
+### Dataset Metadata
 
-The dataset contains multiple languages and document domains, including education-related samples.
-
-### Dataset Labels
-
-The metadata uses the following authenticity labels:
-
-| Original Label | Meaning | Numerical Label |
-| `white` | Genuine or pristine sample | `0` |
-| `black` | Forged or manipulated sample | `1` |
-
-### Dataset Distribution
+The project inspected the original metadata rather than relying on automatically generated dataset labels.
 
 The inspected metadata contains:
 
-| Total records | 13,500 |
-| Genuine samples | 6,000 |
-| Forged samples | 7,500 |
-| Samples with masks | 7,500 |
-| Samples without masks | 6,000 |
+```text
+sample_id
+language
+language_code
+type
+image_file
+mask_file
+has_mask
+report_file
+report_text
+```
 
-### Language Distribution
+The prepared training metadata currently contains:
 
+- **13,500 training records**
+- **7,500 forged samples**
+- **6,000 pristine samples**
+- **7,500 samples with masks**
 
-| English | 3,000 |
-| Chinese | 3,000 |
-| Thai | 2,000 |
-| Malay | 2,000 |
-| Indonesian | 2,000 |
-| Arabic | 1,500 |
+Image and mask paths were validated during metadata preparation.
 
-### Dataset Storage
+---
 
-The dataset is downloaded and cached locally. Raw dataset files are not committed to GitHub because of their size and licensing considerations.
+#  Dataset Preparation
 
-Expected local dataset location:
+The dataset is cached locally rather than committed to GitHub.
+
+Dataset-related files are intentionally excluded from Git because of their size.
+
+### Dataset cache
 
 ```text
 data/cache/RealText-V2/
 ```
 
-The project will use scripts to allow other users to download or prepare the dataset locally.
-
----
-
-## Current Project Status
-
-- [x] Created the GitHub repository.
-- [x] Configured the initial project structure.
-- [x] Created a Python virtual environment.
-- [x] Configured the project `.gitignore`.
-- [x] Set up Git and GitHub repository integration.
-- [x] Created the FastAPI backend.
-- [x] Added the root API endpoint.
-- [x] Added the health-check endpoint.
-- [x] Added backend tests using pytest.
-- [x] Verified that the backend tests pass locally.
-- [x] Created a GitHub Actions continuous integration workflow.
-- [x] Configured CI to install dependencies and run tests.
-- [x] Updated GitHub Actions versions to avoid the Node.js 20 deprecation warning.
-- [x] Created the `feature/dataset-preparation` development branch.
-- [x] Selected the RealText-V2 dataset.
-- [x] Downloaded and cached the dataset locally.
-- [x] Inspected the dataset metadata.
-- [x] Verified metadata shape, columns, labels, mask availability, and language distribution.
-- [ ] Create the training metadata preparation script.
-- [ ] Map metadata filenames to actual local image and mask paths.
-- [ ] Validate image and mask availability.
-- [ ] Create stratified training, validation, and testing splits.
-- [ ] Build the image loading and preprocessing pipeline.
-- [ ] Establish unit tests for dataset preparation and preprocessing components.
-- [ ] Expand the testing strategy to cover all future Python components.
-- [ ] Visualize genuine images, forged images, and tampering masks.
-- [ ] Build a baseline CNN classifier.
-- [ ] Train and evaluate the baseline model.
-- [ ] Implement a residual CNN architecture.
-- [ ] Implement pixel-level tamper localization.
-- [ ] Evaluate classification and localization performance.
-- [ ] Investigate ensemble or multi-model strategies.
-- [ ] Implement model inference utilities.
-- [ ] Integrate the trained model with FastAPI.
-- [ ] Develop the frontend interface.
-- [ ] Add frontend unit testing.
-- [ ] Add frontend component and integration testing.
-- [ ] Add backend integration and end-to-end testing.
-- [ ] Expand GitHub Actions CI workflows.
-- [ ] Document experimental results and limitations.
-- [ ] Prepare the final demonstration and research documentation.
-
----
-
-## Planned Project Structure
-
-The project structure will evolve as additional components are implemented.
+### Generated training metadata
 
 ```text
-certificate-forgery-detection/
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   └── main.py
-│   │
-│   └── tests/
-│       └── test_main.py
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── ...
-│   │
-│   └── tests/
-│       └── ...
-│
-├── data/
-│   ├── cache/
-│   │   └── RealText-V2/
-│   │
-│   └── metadata/
-│
-├── scripts/
-│   ├── inspect_dataset.py
-│   └── prepare_training_metadata.py
-│
-├── models/
-│   └── ...
-│
-├── tests/
-│   ├── test_metadata.py
-│   ├── test_preprocessing.py
-│   ├── test_dataset.py
-│   ├── test_models.py
-│   └── test_inference.py
-│
-├── .gitignore
-├── README.md
-├── requirements.txt
-└── ...
+data/processed/training_metadata.csv
 ```
 
-The `frontend`, `models`, and additional testing files will be added when their respective development stages begin.
+The generated metadata file is also excluded from Git.
+
+### Metadata inspection
+
+```text
+scripts/inspect_metadata.py
+```
+
+This script was used to inspect:
+
+- Metadata shape
+- Metadata columns
+- Data types
+- Authenticity distribution
+- Mask availability
+- Language distribution
+- Example image paths
+- Example mask paths
+
+### Training metadata preparation
+
+```text
+scripts/prepare_training_metadata.py
+```
+
+This script creates the validated training metadata used as the basis for future model training.
 
 ---
 
-## Backend API
+#  Current MVP Model — SEED
 
-The project currently includes a FastAPI backend.
+The temporary MVP uses the pretrained:
 
-### Run the Backend
+**Jason37437/SEED**
 
-Activate the virtual environment:
+SEED provides:
 
-```bash
-source .venv/bin/activate
-```
+- Image-level tampering classification
+- Pixel-level tamper localization
 
-Start the development server:
+### SEED architecture used by the MVP
 
-```bash
-uvicorn backend.app.main:app --reload
-```
+- DINOv3 ViT-L/16 backbone
+- LoRA rank 1
+- One mask query
+- Four decoder blocks
+- 512 × 512 model input
+- Approximately 304M parameters
 
-The API will be available locally at:
+The SEED checkpoint is approximately 1.2 GB.
+
+### Model source
+
+Hugging Face:  
+https://huggingface.co/Jason37437/SEED
+
+Official repository:  
+https://github.com/KahimWong/SEED
+
+---
+
+#  Hugging Face / DINOv3 Access
+
+SEED uses the gated DINOv3 backbone:
 
 ```text
-http://127.0.0.1:8000
+facebook/dinov3-vitl16-pretrain-lvd1689m
 ```
 
-### Current Endpoints
+The EC2 deployment therefore requires an authenticated Hugging Face account with access to the gated DINOv3 model.
 
-#### Root Endpoint
+The model is downloaded and cached on the deployment server after authentication.
 
-```http
-GET /
+**Hugging Face tokens must never be committed to the repository.**
+
+---
+
+#  SEED Integration
+
+The integrated SEED implementation is located under:
+
+```text
+backend/app/ml/
 ```
 
-Example response:
+Current files include:
 
-```json
-{
-  "message": "Certificate Forgery Detection API is running"
-}
+```text
+__init__.py
+cfg.py
+eomt_sep_query.py
+hf_wrapper.py
+lora.py
+mask_classification_loss.py
+scale_block.py
 ```
 
-#### Health Endpoint
+The project uses its own package imports so that the SEED implementation can be loaded from the FastAPI application.
 
-```http
-GET /health
+---
+
+#  Inference Pipeline
+
+```text
+Certificate Image
+       │
+       ▼
+FastAPI Upload
+       │
+       ▼
+Temporary Image File
+       │
+       ▼
+SEED Detector
+       │
+       ├───────────────┐
+       ▼               ▼
+Classification      Mask Prediction
+       │               │
+       ▼               ▼
+REAL / FORGED     Pixel-level Mask
+       │               │
+       └───────┬───────┘
+               ▼
+        Result Processing
+               │
+       ┌───────┼────────┐
+       ▼       ▼        ▼
+ Confidence  Tamper   Localization
+             Ratio       Mask
+               │
+               ▼
+          JSON Response
+               │
+               ▼
+          React Frontend
 ```
 
-Example response:
+### API output
+
+The API currently returns information including:
+
+```text
+prediction
+confidence
+real_probability
+forged_probability
+image_width
+image_height
+tampered_pixels
+tamper_ratio
+mask_width
+mask_height
+tamper_mask_base64
+```
+
+The binary mask is encoded as Base64 for API transfer and frontend rendering.
+
+---
+
+#  Example Inference
+
+A locally tested RealText-V2 sample produced:
+
+```text
+Prediction: REAL
+Confidence: 0.5862
+Real probability: 0.5862
+Forged probability: 0.4138
+Image size: 1191 × 1684
+Tampered pixels: 28439
+Tamper ratio: 0.014179
+```
+
+Another tested sample produced approximately:
+
+```text
+Forged probability: 0.961267
+Real probability: 0.038733
+Tamper ratio: 0.0017265
+```
+
+These are individual inference examples and should not be interpreted as overall model accuracy.
+
+---
+
+#  Backend
+
+The backend uses **FastAPI**.
+
+Main application:
+
+```text
+backend/app/main.py
+```
+
+Detector:
+
+```text
+backend/app/services/seed_detector.py
+```
+
+The detector supports:
+
+- Lazy model loading
+- CPU inference
+- CUDA detection
+- Apple Silicon MPS detection
+- Image preprocessing
+- Classification
+- Localization
+- Mask resizing
+- Base64 mask encoding
+
+### API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/` | GET | Serves the React production frontend |
+| `/health` | GET | Backend health check |
+| `/predict` | POST | Certificate forgery prediction and tamper localization |
+
+### Health response
 
 ```json
 {
@@ -312,496 +375,440 @@ Example response:
 }
 ```
 
-Interactive API documentation is available at:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### Planned Prediction Endpoint
-
-A prediction endpoint will be added after the model inference pipeline is implemented.
-
-Planned endpoint:
-
-```http
-POST /predict
-```
-
-The endpoint is expected to accept a certificate image and return:
-
-- Predicted class.
-- Confidence score.
-- Tampering detection result.
-- Predicted tampering mask or a reference to the generated mask.
-
-The final response structure will be documented after implementation.
-
 ---
 
-## Testing Strategy
+#  Frontend
 
-Automated testing is a core part of this project. Tests will be developed alongside each component rather than being added only after the complete system is built.
-
-The testing strategy will cover backend functionality, frontend behavior, data-processing utilities, machine-learning components, inference, and the complete application workflow.
-
-### Testing Levels
-
-```text
-Unit Tests
-    |
-    v
-Component Tests
-    |
-    v
-Integration Tests
-    |
-    v
-End-to-End Tests
-    |
-    v
-Continuous Integration
-```
-
-### Backend and Python Testing
-
-Python components will be tested using:
-
-- `pytest`
-- `pytest-cov`
-- `HTTPX`
-- `unittest.mock`
-- PyTorch testing utilities
-
-Planned Python test coverage includes:
-
-- Metadata preparation.
-- File-path resolution.
-- Metadata validation.
-- Image preprocessing.
-- Mask preprocessing.
-- Dataset loading.
-- DataLoader behavior.
-- CNN model forward passes.
-- Residual block behavior.
-- Model input and output shapes.
-- Training utilities.
-- Loss calculations.
-- Metric calculations.
-- Checkpoint saving and loading.
-- Inference functions.
-- Prediction response formatting.
-- FastAPI endpoints.
-- Invalid input and error handling.
-
-### Frontend Testing
-
-The frontend will also include automated testing.
-
-Depending on the final frontend stack, the planned testing tools may include:
-
-- Vitest or Jest for JavaScript/TypeScript unit testing.
-- React Testing Library for testing React components and user interactions.
-- A suitable browser-testing tool, such as Playwright, for end-to-end testing.
-
-Frontend tests will cover:
-
-- Component rendering.
-- File-upload behavior.
-- File-type and file-size validation.
-- Loading states.
-- Error messages.
-- API request handling.
-- Prediction result rendering.
-- Confidence display.
-- Tampering-mask display.
-- Navigation and page behavior.
-- Accessibility-related behavior where practical.
-
-Frontend tests should focus on user-visible behavior rather than testing implementation details unnecessarily.
-
-### Integration Testing
-
-Integration tests will verify that multiple components work together correctly.
-
-Examples include:
-
-- Metadata preparation and dataset loading.
-- Dataset loading and preprocessing.
-- Preprocessing and model inference.
-- Inference and FastAPI response generation.
-- Frontend API service and backend endpoint.
-- Frontend upload component and prediction-result component.
-
-### End-to-End Testing
-
-End-to-end testing will verify the complete user workflow:
-
-```text
-Open Web Application
-        |
-        v
-Upload Certificate
-        |
-        v
-Validate File
-        |
-        v
-Send Image to API
-        |
-        v
-Run Model Inference
-        |
-        v
-Receive Prediction
-        |
-        v
-Display Classification and Tampering Regions
-```
-
-The end-to-end tests will use controlled test inputs and mocked or lightweight model responses when appropriate.
-
-### Testing Without the Full Dataset
-
-Tests should not depend on the complete downloaded dataset or a fully trained model.
-
-Instead, the project will use:
-
-- Small synthetic images.
-- Temporary directories.
-- Mock metadata.
-- Test fixtures.
-- Mock model outputs.
-- Lightweight test models.
-
-This ensures that tests remain fast, reproducible, and suitable for GitHub Actions.
-
-
-## Continuous Integration and CI/CD
-
-GitHub Actions is used to run automated checks whenever changes are pushed or pull requests are created.
-
-### Current CI Pipeline
-
-The current workflow:
-
-1. Checks out the repository.
-2. Sets up Python.
-3. Upgrades pip.
-4. Installs dependencies.
-5. Runs pytest.
-
-Workflow file:
-
-```text
-.github/workflows/ci.yml
-```
-
-### Planned CI Improvements
-
-The CI pipeline will gradually be expanded to include:
-
-- Python unit tests.
-- Python code coverage.
-- Dataset utility tests.
-- Model architecture tests.
-- Backend integration tests.
-- Frontend dependency installation.
-- Frontend unit tests.
-- Frontend build verification.
-- Frontend linting.
-- Frontend coverage reporting.
-- API integration tests.
-- End-to-end tests where appropriate.
-
-The full dataset and trained model files will not be downloaded during every CI run. CI will use small fixtures and mocked components wherever possible.
-
----
-
-## Machine Learning Pipeline
-
-The planned machine-learning pipeline is:
-
-```text
-Dataset Download
-       |
-       v
-Metadata Preparation
-       |
-       v
-Train/Validation/Test Split
-       |
-       v
-Image and Mask Preprocessing
-       |
-       v
-Dataset Loader
-       |
-       v
-Baseline CNN
-       |
-       v
-Residual CNN
-       |
-       v
-Tamper Localization Model
-       |
-       v
-Model Evaluation
-       |
-       v
-Inference Pipeline
-       |
-       v
-FastAPI Integration
-```
-
----
-
-## Classification Model
-
-The classification model will determine whether a certificate image is genuine or forged.
-
-The initial baseline may follow a structure similar to:
-
-```text
-Input Image
-    ↓
-Convolution
-    ↓
-Activation Function
-    ↓
-Pooling
-    ↓
-Convolution
-    ↓
-Activation Function
-    ↓
-Pooling
-    ↓
-Fully Connected Layer
-    ↓
-Genuine / Forged
-```
-
-After establishing a baseline, residual learning will be introduced.
-
-### Residual Learning
-
-A residual block learns a transformation and adds the original input through a shortcut connection:
-
-\[
-y = F(x) + x
-\]
-
-where:
-
-- \(x\) is the input.
-- \(F(x)\) is the transformation learned by the convolutional layers.
-- \(y\) is the output of the residual block.
-
-Residual connections may help improve gradient flow and training stability in deeper networks.
-
----
-
-## Pixel-Level Tamper Localization
-
-Classification determines whether an image is likely forged, while localization attempts to identify the regions containing possible manipulation.
-
-The planned localization architecture may use an encoder-decoder or U-Net-inspired design with residual components.
-
-```text
-Input Certificate
-       |
-       v
-Feature Extraction
-       |
-       v
-Encoder
-       |
-       v
-Bottleneck
-       |
-       v
-Decoder
-       |
-       v
-Predicted Tampering Mask
-```
-
-The predicted mask is expected to represent:
-
-```text
-0 = Non-tampered region
-1 = Potentially tampered region
-```
-
-The exact mask representation will depend on the final model implementation.
-
----
-
-## Model Evaluation
-
-### Classification Metrics
-
-The classification model will be evaluated using:
-
-- Accuracy.
-- Precision.
-- Recall.
-- F1-score.
-- Confusion matrix.
-- ROC-AUC, where applicable.
-
-Special attention will be given to recall for forged certificates because incorrectly classifying a forged certificate as genuine is an important failure case.
-
-### Localization Metrics
-
-The tamper localization component may be evaluated using:
-
-- Pixel accuracy.
-- Pixel-level precision.
-- Pixel-level recall.
-- Intersection over Union, or IoU.
-- Dice coefficient.
-
-Visual comparisons will also be performed between:
-
-1. Original certificate image.
-2. Ground-truth tampering mask.
-3. Predicted tampering mask.
-4. Overlay of predicted suspicious regions on the original image.
-
----
-
-## Technologies
-
-### Programming Language
-
-- Python
-
-### Backend
-
-- FastAPI
-- Uvicorn
-
-### Data Processing
-
-- pandas
-- NumPy
-- Pillow
-- PyArrow
-
-### Deep Learning
-
-- PyTorch
-- Torchvision
-
-### Machine Learning Utilities
-
-- scikit-learn
-
-### Backend Testing
-
-- pytest
-- pytest-cov
-- HTTPX
-- unittest.mock
-
-### Frontend
+The frontend uses:
 
 - React
-- JavaScript or TypeScript
+- Vite
+- JavaScript
+- CSS
 
-### Frontend Testing
+Location:
 
-- Vitest or Jest
-- React Testing Library
-- Playwright or another suitable browser-testing framework
+```text
+frontend/
+```
 
-### DevOps and Version Control
+Current features:
 
-- Git
-- GitHub
-- GitHub Actions
+- Certificate upload
+- Image preview
+- Analyze button
+- Prediction result
+- Confidence
+- Real probability
+- Forged probability
+- Tampered-pixel count
+- Tamper ratio
+- Potentially tampered-region visualization
+- Raw binary mask visualization
 
----
+The frontend uses the relative API path:
 
-## Security and Privacy Considerations
+```javascript
+fetch("/predict", ...)
+```
 
-Since certificate images may contain personally identifiable information, the project will consider the following security concerns:
-
-- Secure handling of uploaded files.
-- File-type and file-size validation.
-- Protection against malicious file uploads.
-- Avoiding unnecessary storage of uploaded certificates.
-- Controlled access to prediction results.
-- Secure API communication.
-- Protection of environment variables and secrets.
-- Avoiding sensitive information in application logs.
-- Appropriate retention and deletion policies.
-- Access control for stored files and results.
-
-The system should not expose uploaded certificate images or prediction data unnecessarily.
-
----
-
-## Reproducibility
-
-The dataset and trained model files are not stored directly in the GitHub repository.
-
-The project will provide scripts and instructions for:
-
-1. Installing dependencies.
-2. Downloading or accessing the dataset.
-3. Preparing metadata.
-4. Creating dataset splits.
-5. Training the models.
-6. Evaluating the models.
-7. Running the prediction API.
-8. Running the frontend.
-9. Running automated tests.
-
-This approach keeps the repository lightweight and avoids committing large data or model files.
+This allows the production build to work with FastAPI without hard-coding the backend host.
 
 ---
 
-## Limitations
+#  Tamper Localization
 
-Potential limitations include:
+The UI presents localized areas as:
 
-- Dataset distribution may not fully represent real-world academic certificates.
-- Model predictions may be affected by image quality, compression, scanning artifacts, or unseen forgery techniques.
-- A high classification score does not guarantee reliable real-world certificate verification.
-- Localization predictions may not perfectly identify every tampered pixel.
-- Ensemble models may increase computational requirements and inference time.
-- False positives may cause genuine certificates to be flagged for additional review.
-- The system should be used as an assistive tool alongside official verification procedures.
+**Potentially Tampered Regions**
 
----
+rather than treating the mask as definitive proof of forgery.
 
-## Future Scope
+Current mask interpretation:
 
-Potential future improvements include:
+```text
+255 / white → potentially tampered
+0 / black   → not highlighted
+```
 
-- Ensemble learning using multiple CNN or transformer-based models.
-- Confidence calibration and uncertainty estimation.
-- Improved pixel-level localization.
-- Detection of new and unseen forgery techniques.
-- Support for more document formats.
-- Integration with institutional certificate verification systems.
-- Explainable AI methods for highlighting important evidence.
-- Privacy-preserving or secure document processing.
-- Secure storage and controlled access to uploaded certificates.
-- Audit logging for verification activities.
-- Integration with external identity or credential verification APIs, where legally and technically appropriate.
-- Human-in-the-loop review for uncertain predictions.
-- Personalized verification workflows based on institutional requirements.
-- Model monitoring and periodic retraining.
-- Deployment optimization for CPU, GPU, or Apple Silicon environments.
+A transparent overlay is generated over the original certificate.
 
 ---
 
-## Disclaimer
+#  Production Architecture
 
-This project is developed for academic and research purposes. Predictions generated by the system should not be treated as definitive proof of fraud. Official verification, institutional records, and expert review remain necessary for high-stakes decisions.
+```text
+                    Internet
+                       │
+                       ▼
+             AWS EC2 Public IP
+                       │
+                       ▼
+                 FastAPI :8001
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+          ▼                         ▼
+     React Frontend              API
+                                    │
+                                 /predict
+                                    │
+                                    ▼
+                              SEED Detector
+                                    │
+                              DINOv3 Backbone
+                                    │
+                                    ▼
+                              JSON + Mask
+```
+
+The production React build is copied into:
+
+```text
+backend/app/static/
+```
+
+and served directly by FastAPI.
+
+The generated static directory is intentionally ignored by Git and recreated during deployment.
+
+---
+
+#  AWS Deployment
+
+The temporary MVP is deployed on **AWS EC2**.
+
+| Component | Configuration |
+|---|---|
+| Region | Mumbai (`ap-south-1`) |
+| Instance | `t4g.small` |
+| Architecture | ARM64 / `aarch64` |
+| RAM | ~1.8 GiB |
+| Swap | 4 GiB |
+| Storage | 30 GiB gp3 |
+| Inference | CPU |
+| Backend | FastAPI |
+| Frontend | React/Vite production build |
+| Process manager | systemd |
+| Public port | 8001 |
+
+### CPU-only PyTorch
+
+The EC2 instance uses CPU-only PyTorch. This avoids the large CUDA dependencies that a normal Linux ARM64 PyTorch installation attempted to download.
+
+---
+
+#  Persistent Deployment
+
+FastAPI is managed with:
+
+```text
+/etc/systemd/system/certificate-forgery.service
+```
+
+The service runs the project's virtual-environment Uvicorn process with:
+
+```text
+backend.app.main:app
+--host 0.0.0.0
+--port 8001
+```
+
+It is configured to restart automatically and start after system boot.
+
+The application therefore remains available after the SSH session is closed.
+
+---
+
+#  Security and Deployment Notes
+
+The current deployment is an MVP rather than the final production security architecture.
+
+Current considerations:
+
+- Hugging Face credentials are stored on the deployment server and are not committed to Git.
+- Dataset files are excluded from Git.
+- Model checkpoints are excluded from Git.
+- Python virtual environments are excluded from Git.
+- Uploaded files are temporarily stored during inference and removed afterward.
+- The API validates that uploaded content is an image.
+- CORS was configured for local development/preview environments.
+- EC2 currently exposes port `8001`.
+
+### Future security improvements
+
+- HTTPS
+- Reverse proxy such as Nginx
+- Domain name
+- TLS certificate
+- Restrictive security-group rules
+- Rate limiting
+- Stronger file-type and upload-size validation
+- Production secret management
+- Structured logging
+- Monitoring and alerting
+
+---
+
+#  Testing and CI/CD
+
+The project has backend tests under:
+
+```text
+backend/tests/
+```
+
+The existing test suite has successfully run with:
+
+```text
+2 passed
+```
+
+GitHub Actions is used for continuous testing and backend validation.
+
+The CI configuration also accounts for GitHub Actions runtime changes, including the Node.js 20 deprecation affecting older actions.
+
+---
+
+#  Git Workflow
+
+Development follows an issue → branch → PR workflow.
+
+The temporary deployment was implemented on:
+
+```text
+feature/temporary-mvp-deployment
+```
+
+The branch was pushed to GitHub and deployed to EC2.
+
+Generated files such as:
+
+```text
+backend/app/static/
+```
+
+are excluded from Git because they are deployment artifacts generated from the React build.
+
+---
+
+#  Project Structure
+
+```text
+certificate-forgery-detection/
+│
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── services/
+│   │   │   └── seed_detector.py
+│   │   ├── ml/
+│   │   │   ├── __init__.py
+│   │   │   ├── cfg.py
+│   │   │   ├── eomt_sep_query.py
+│   │   │   ├── hf_wrapper.py
+│   │   │   ├── lora.py
+│   │   │   ├── mask_classification_loss.py
+│   │   │   └── scale_block.py
+│   │   └── static/
+│   │       └── ... generated React production build ...
+│   │
+│   └── tests/
+│       └── test_main.py
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   └── App.css
+│   ├── package.json
+│   └── ...
+│
+├── scripts/
+│   ├── inspect_metadata.py
+│   └── prepare_training_metadata.py
+│
+├── data/
+│   ├── cache/
+│   │   └── RealText-V2/
+│   └── processed/
+│       └── training_metadata.csv
+│
+├── .gitignore
+├── README.md
+└── ...
+```
+
+---
+
+#  Local Development
+
+## Backend
+
+Create/activate the virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Run FastAPI:
+
+```bash
+PYTHONPATH=. uvicorn backend.app.main:app --port 8001
+```
+
+For the single-server production-style setup, the React production build can be copied into:
+
+```text
+backend/app/static/
+```
+
+and the application can then be accessed through:
+
+```text
+http://127.0.0.1:8001
+```
+
+## Frontend
+
+From:
+
+```text
+frontend/
+```
+
+install dependencies:
+
+```bash
+npm install
+```
+
+Start development mode:
+
+```bash
+npm run dev
+```
+
+Build production files:
+
+```bash
+npm run build
+```
+
+Then copy the resulting `frontend/dist/` contents to:
+
+```text
+backend/app/static/
+```
+
+for the FastAPI-served deployment architecture.
+
+---
+
+#  Long-Term Roadmap
+
+## Phase 1 — Dataset
+
+- [x] Acquire RealText-V2
+- [x] Cache dataset locally
+- [x] Inspect original metadata
+- [x] Validate image/mask paths
+- [x] Generate training metadata
+- [ ] Perform deeper dataset analysis
+- [ ] Define preprocessing strategy
+- [ ] Define train/validation/test split
+- [ ] Define augmentation pipeline
+
+## Phase 2 — Baseline Models
+
+- [ ] Establish baseline CNN
+- [ ] Train baseline model
+- [ ] Evaluate classification performance
+- [ ] Analyze errors
+
+## Phase 3 — Residual CNN
+
+- [ ] Design residual architecture
+- [ ] Implement residual blocks
+- [ ] Train custom model
+- [ ] Tune hyperparameters
+- [ ] Evaluate performance
+- [ ] Compare against baseline
+
+## Phase 4 — Pixel-Level Localization
+
+- [ ] Implement localization architecture
+- [ ] Train using available masks
+- [ ] Evaluate localization quality
+- [ ] Analyze false-positive and false-negative regions
+
+## Phase 5 — Model Integration
+
+- [x] Temporary SEED inference integration
+- [x] FastAPI inference endpoint
+- [x] React integration
+- [ ] Integrate custom Residual CNN
+- [ ] Compare multiple models
+- [ ] Investigate ensemble approaches
+- [ ] Build combined inference pipeline
+
+## Phase 6 — Evaluation
+
+Future evaluation should include:
+
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- ROC-AUC where appropriate
+- Confusion matrix
+- Pixel-level localization metrics
+- Error analysis
+
+## Phase 7 — Security and Privacy
+
+- [ ] Secure upload pipeline
+- [ ] Input validation improvements
+- [ ] Rate limiting
+- [ ] Secure secret management
+- [ ] HTTPS
+- [ ] Privacy-aware image handling
+- [ ] Logging and monitoring
+- [ ] Production security review
+
+## Phase 8 — Final Deployment
+
+- [x] Temporary EC2 MVP
+- [ ] Production reverse proxy
+- [ ] HTTPS/domain
+- [ ] Improved resource management
+- [ ] Production monitoring
+- [ ] Final trained model deployment
+- [ ] Final end-to-end validation
+
+---
+
+# Current Limitations
+
+The current public deployment should be considered a **temporary MVP**.
+
+1. The deployed detector is pretrained SEED rather than the final custom Residual CNN.
+2. The EC2 instance performs inference on CPU.
+3. The deployment currently uses a public IP and port `8001`.
+4. HTTPS/domain configuration has not yet been added.
+5. The final custom model has not yet been trained.
+6. Comprehensive model evaluation remains part of the research work.
+7. Localization identifies potentially tampered regions and should not be treated as definitive proof of fraud.
+8. Production-grade security hardening remains to be completed.
+
+---
+
+#  Current Status
+
+**Temporary MVP: DEPLOYED AND WORKING**
+
+Live application:
+
+http://13.206.240.176:8001
+
+The next major milestone is implementation, training, evaluation, and integration of the project's custom Residual CNN-based forgery detection pipeline.
