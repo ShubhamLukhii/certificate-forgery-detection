@@ -27,3 +27,10 @@ outputs/
 
 # Hugging Face local cache, if it is ever placed inside the project
 .huggingface/
+
+# Node / React
+node_modules/
+
+# Frontend build output
+frontend/dist/
+frontend/.vite/
