@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-const API_URL = "http://127.0.0.1:8001";
-
 function App() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -52,7 +50,7 @@ function App() {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${API_URL}/predict`, {
+      const response = await fetch('/predict', {
         method: "POST",
         body: formData,
       });
