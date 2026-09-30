@@ -34,3 +34,6 @@ node_modules/
 # Frontend build output
 frontend/dist/
 frontend/.vite/
+
+# Generated React production build served by FastAPI
+backend/app/static/

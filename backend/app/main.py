@@ -1,7 +1,7 @@
 from pathlib import Path
 import tempfile
-
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.services.seed_detector import SEEDDetector
@@ -35,14 +35,6 @@ app.add_middleware(
 detector = SEEDDetector()
 
 
-@app.get("/")
-def root():
-    """
-    Basic root endpoint to confirm that the API is running.
-    """
-    return {
-        "message": "Certificate Forgery Detection API is running"
-    }
 
 
 @app.get("/health")
@@ -115,3 +107,12 @@ async def predict_certificate(
             temporary_path.unlink(
                 missing_ok=True
             )
+
+app.mount(
+    "/",
+    StaticFiles(
+        directory="backend/app/static",
+        html=True,
+    ),
+    name="frontend",
+)
